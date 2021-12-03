@@ -154,6 +154,19 @@ namespace wbbot.ViewModel
             //link.Click();
         }
 
+        void Start()
+        {
+            if (StartTime.Hour != EndTime.Hour && StartTime.Minute != EndTime.Minute)
+            {
+                if (DateTime.Now.TimeOfDay >= StartTime.TimeOfDay && DateTime.Now.TimeOfDay <= EndTime.TimeOfDay)
+                    DoIt();
+                else
+                    return;
+            }
+
+            DoIt();
+        }
+
         void Stop()
         {
             timer.Stop();
@@ -176,7 +189,7 @@ namespace wbbot.ViewModel
                 return startCommand ??
                     (startCommand = new RelayCommand(obj =>
                     {
-                        DoIt();
+                        Start();
 
                         DispatcherTimer timer = new DispatcherTimer();
                         timer.Interval = TimeSpan.FromSeconds(Freq);
@@ -188,7 +201,7 @@ namespace wbbot.ViewModel
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            DoIt();
+            Start();
         }
 
         private RelayCommand stopCommand;
