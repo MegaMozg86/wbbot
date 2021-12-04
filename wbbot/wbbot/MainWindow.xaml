@@ -15,6 +15,7 @@
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
@@ -24,25 +25,30 @@
         </StackPanel>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+            <TextBlock Margin="5">Ссылка:</TextBlock>
+            <TextBox Margin="5" Width=" 700" Text="{Binding Link, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></TextBox>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
             <TextBlock Width="250" Margin="5">Предел ставки (руб.):</TextBlock>
             <TextBox Margin="5" Width=" 200" Text="{Binding Limit, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></TextBox>
         </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+        <StackPanel Grid.Row="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
             <TextBlock Width="250" Margin="5">Частота обновления (сек.):</TextBlock>
             <TextBox Margin="5" Width=" 200" Text="{Binding Freq, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></TextBox>
         </StackPanel>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+        <StackPanel Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
             <TextBlock Margin="5" Width="250">Начало работы:</TextBlock>
             <xctk:TimePicker Margin="5" Width="150" Value="{Binding StartTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></xctk:TimePicker>
         </StackPanel>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+        <StackPanel Grid.Row="5" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
             <TextBlock Margin="5" Width="250">Завершение работы:</TextBlock>
             <xctk:TimePicker Margin="5" Width="150" Value="{Binding EndTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></xctk:TimePicker>
         </StackPanel>
 
-        <Button Grid.Row="5" Margin="5" Width="500" Command="{Binding StopCommand}">Остановить рекламную кампанию</Button>
+        <Button Grid.Row="6" Margin="5" Width="500" Command="{Binding StopCommand}">Остановить рекламную кампанию</Button>
     </Grid>
 </Window>

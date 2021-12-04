@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using wbbot.Helper;
+using wbbot.View;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.PhantomJS;
@@ -15,10 +16,12 @@ namespace wbbot.ViewModel
     public class CodeViewModel : INotifyPropertyChanged
     {
         IWebDriver driver;
+        CodeWindow window;
 
-        public CodeViewModel(IWebDriver _driver)
+        public CodeViewModel(IWebDriver _driver, CodeWindow _window)
         {
             driver = _driver;
+            window = _window;
         }
 
         string code;
@@ -45,6 +48,7 @@ namespace wbbot.ViewModel
                     {
                         IWebElement query = driver.FindElement(By.Name("notifyCode"));
                         query.SendKeys(Code);
+                        window.Close();
 
                     }));
             }

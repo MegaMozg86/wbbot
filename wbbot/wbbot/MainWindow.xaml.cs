@@ -49,6 +49,10 @@ namespace wbbot
             settings.Freq = vm.Freq;
             settings.StartTime = vm.StartTime;
             settings.EndTime = vm.EndTime;
+            settings.Link = vm.Link;
+
+            if(vm.driver != null)
+                vm.driver.Close();
 
             try
             {

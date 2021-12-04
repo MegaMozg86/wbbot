@@ -5,6 +5,7 @@ using System.Text;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Threading;
+using System.Threading.Tasks;
 using System.IO;
 using wbbot.Helper;
 using wbbot.View;
@@ -20,13 +21,14 @@ namespace wbbot.ViewModel
         public MainViewModel(Settings settings)
         {
             PhoneNumber = settings.PhoneNumber;
+            Link = settings.Link;
             Limit = settings.Limit;
             Freq = settings.Freq;
             StartTime = settings.StartTime;
             EndTime = settings.EndTime;
         }
 
-        IWebDriver driver;
+        public IWebDriver driver;
         DispatcherTimer timer;
 
         double[] places = new double[3];
@@ -49,6 +51,20 @@ namespace wbbot.ViewModel
             {
                 phoneNumber = value;
                 OnPropertyChanged("PhoneNumber");
+            }
+        }
+
+        string link;
+        public string Link
+        {
+            get
+            {
+                return link;
+            }
+            set
+            {
+                link = value;
+                OnPropertyChanged("Link");
             }
         }
 
@@ -110,72 +126,62 @@ namespace wbbot.ViewModel
 
         void DoIt()
         {
-            isRaise = false;
-            System.Threading.Thread.Sleep(20000);
-            //driver.Navigate().GoToUrl("https://seller.wildberries.ru/cmp/campaigns/list/pause/edit/search/502540");
-            driver.Navigate().GoToUrl("https://seller.wildberries.ru/cmp/campaigns/list/pause/edit/search/505131");
-
-            System.Threading.Thread.Sleep(30000);
-            // Определяем позицию
-            IWebElement span = driver.FindElement(By.ClassName("card__settings__row__box--place")).FindElement(By.TagName("span"));
-            var positions = span.Text.Split('-');
-
-            // получаем ставки за три первых места
-            var ms = driver.FindElements(By.ClassName("places__text"));
-            for(int i = 0; i < 3; ++i)
+            new Task(() =>
             {
-                var m = ms[i].Text.Split(' ');
-                places[i] = double.Parse(m[0]);
-            }
+                isRaise = false;
+                System.Threading.Thread.Sleep(5000);
 
-            // поле ввода
-            IWebElement input = driver.FindElement(By.ClassName("form__input--white"));
+                driver.Navigate().GoToUrl(Link);
 
-            // определили повышение ставки
-            current = input.GetAttribute("value");    // получаем текущую ставку
-            _current = double.Parse(current);
-            if (places[0] > _current)
-                isRaise = true;
-            // -----------------------------
+                System.Threading.Thread.Sleep(30000);
+                // Определяем позицию
+                IWebElement span = driver.FindElement(By.ClassName("card__settings__row__box--place")).FindElement(By.TagName("span"));
+                var positions = span.Text.Split('-');
 
-            if (positions[0] != "1")
-            {
-                // Получаем стоимость первого места
-                //IWebElement money = driver.FindElement(By.ClassName("places__text"));
-                //var m = money.Text.Split(' ');
-                //int s = int.Parse(m[0]);
-                //if (s > Limit)
-                //{
-                //    Stop();
-                //    return;
-                //}
-
-                if (places[0] > Limit)
+                // получаем ставки за три первых места
+                var ms = driver.FindElements(By.ClassName("places__text"));
+                for (int i = 0; i < 3; ++i)
                 {
-                    Stop();
-                    return;
+                    var m = ms[i].Text.Split(' ');
+                    places[i] = double.Parse(m[0]);
                 }
 
-                
+                // поле ввода
+                IWebElement input = driver.FindElement(By.ClassName("form__input--white"));
 
-                input.Clear();
-                //  input.SendKeys(m[0]);
-                input.SendKeys(((int)places[0]).ToString());
-                span.Click();// делаем ставку
+                // определили повышение ставки
+                current = input.GetAttribute("value");    // получаем текущую ставку
+                _current = double.Parse(current);
+                if (places[0] > _current)
+                    isRaise = true;
+                // -----------------------------
 
-                // нажимаем кнопку сохранить компанию
-                //          IWebElement btnSave = driver.FindElement(By.ClassName("begin-container")).FindElement(By.ClassName("m-l-24"));
-                IWebElement btnSave = driver.FindElement(By.ClassName("begin-container")).FindElement(By.ClassName("btn--outline"));
-                btnSave.Click();
-            }
+                if (positions[0] != "1")
+                {
+                    // Получаем стоимость первого места
+                    if (places[0] > Limit)
+                    {
+                        Stop();
+                        return;
+                    }
 
-            // клик на кнопке статистики
-            // не обязательно перечеслять все уровни иерархии вложений
-            IWebElement link = driver.FindElement(By.ClassName("well"))
-            .FindElement(By.ClassName("preview-link"));
-            link.Click();
+                    input.Clear();
+                    //  input.SendKeys(m[0]);
+                    input.SendKeys(((int)places[0]).ToString());
+                    span.Click();// делаем ставку
 
-            ParseTable();
+                    IWebElement btnSave = driver.FindElement(By.ClassName("begin-container")).FindElement(By.ClassName("btn--outline"));
+                    btnSave.Click();
+                }
+
+                // клик на кнопке статистики
+                // не обязательно перечеслять все уровни иерархии вложений
+                IWebElement link = driver.FindElement(By.ClassName("well"))
+                .FindElement(By.ClassName("preview-link"));
+                link.Click();
+
+                ParseTable();
+            }).Start();            
         }
 
         void ParseTable()
@@ -183,11 +189,6 @@ namespace wbbot.ViewModel
             string content = string.Empty;
             var columns = driver.FindElements(By.ClassName("table-nonadaptive--column"));
             content += DateTime.Now.ToString("dd.MM.yyyy;HH:mm:ss;");
-            //foreach(var col in columns)
-            //{
-            //    var text = col.Text.Split('\r');
-            //    content += text[1].Replace('\n', ' ').Replace('.', ',').Trim() + ";";
-            //}
 
             for(int i = 0; i < 7; ++i)
             {
@@ -242,20 +243,25 @@ namespace wbbot.ViewModel
                 return startCommand ??
                     (startCommand = new RelayCommand(obj =>
                     {
-                        
-                        driver = new FirefoxDriver();
-                        driver.Manage().Window.Maximize();
-                        //driver.Navigate().GoToUrl("https://seller.wildberries.ru/cmp/campaigns/list/pause/edit/search/502540");
-                        driver.Navigate().GoToUrl("https://seller.wildberries.ru/cmp/campaigns/list/pause/edit/search/505131");
+                        FirefoxOptions options = new FirefoxOptions();
+                        options.AddArgument("-headless");
 
-                        System.Threading.Thread.Sleep(10000);
-                        IWebElement query = driver.FindElement(By.ClassName("SimpleInput--vVIag"));
-                        query.SendKeys(PhoneNumber);
-                        IWebElement button = driver.FindElement(By.ClassName("Button--full-width--DVZvW"));
-                        button.Click();
+                        driver = new FirefoxDriver(options);
 
-                        CodeViewModel codeViewModel = new CodeViewModel(driver);
+                        driver.Navigate().GoToUrl(Link);
+
+                        new Task(() =>
+                        {
+
+                            System.Threading.Thread.Sleep(10000);
+                            IWebElement query = driver.FindElement(By.ClassName("SimpleInput--vVIag"));
+                            query.SendKeys(PhoneNumber);
+                            IWebElement button = driver.FindElement(By.ClassName("Button--full-width--DVZvW"));
+                            button.Click();
+                        }).Start();
+                                                
                         CodeWindow codeWindow = new CodeWindow();
+                        CodeViewModel codeViewModel = new CodeViewModel(driver, codeWindow);
                         codeWindow.DataContext = codeViewModel;
                         codeWindow.ShowDialog();
 
@@ -265,7 +271,7 @@ namespace wbbot.ViewModel
 
                         Check();
 
-                        DispatcherTimer timer = new DispatcherTimer();
+                        timer = new DispatcherTimer();
                         timer.Interval = TimeSpan.FromSeconds(Freq);
                         timer.Tick += Timer_Tick;
                         timer.Start();
@@ -287,6 +293,7 @@ namespace wbbot.ViewModel
                     (stopCommand = new RelayCommand(obj =>
                     {
                         Stop();
+                        driver.Close();
                     }));
             }
         }
