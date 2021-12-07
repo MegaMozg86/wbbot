@@ -26,6 +26,7 @@ namespace wbbot.ViewModel
             Freq = settings.Freq;
             StartTime = settings.StartTime;
             EndTime = settings.EndTime;
+            IsHeadless = settings.IsHeadless;
         }
 
         public IWebDriver driver;
@@ -123,13 +124,26 @@ namespace wbbot.ViewModel
                 OnPropertyChanged("EndTime");
             }
         }
+        bool isHeadless;
+        public bool IsHeadless
+        {
+            get
+            {
+                return isHeadless;
+            }
+            set
+            {
+                isHeadless = value;
+                OnPropertyChanged("IsHeadless");
+            }
+        }
 
         void DoIt()
         {
             new Task(() =>
             {
                 isRaise = false;
-                System.Threading.Thread.Sleep(5000);
+                System.Threading.Thread.Sleep(10000);
 
                 driver.Navigate().GoToUrl(Link);
 
@@ -244,7 +258,9 @@ namespace wbbot.ViewModel
                     (startCommand = new RelayCommand(obj =>
                     {
                         FirefoxOptions options = new FirefoxOptions();
-                        options.AddArgument("-headless");
+                        
+                        if(IsHeadless)
+                            options.AddArgument("-headless");
 
                         driver = new FirefoxDriver(options);
 

@@ -14,5 +14,7 @@ namespace wbbot.Model
         public int Freq { get; set; } = 60;
         public DateTime StartTime { get; set; } = DateTime.Now;
         public DateTime EndTime { get; set; } = DateTime.Now;
+
+        public bool IsHeadless { get; set; } = false;
     }
 }

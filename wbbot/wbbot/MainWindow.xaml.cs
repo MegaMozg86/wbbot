@@ -50,6 +50,7 @@ namespace wbbot
             settings.StartTime = vm.StartTime;
             settings.EndTime = vm.EndTime;
             settings.Link = vm.Link;
+            settings.IsHeadless = vm.IsHeadless;
 
             if(vm.driver != null)
                 vm.driver.Close();

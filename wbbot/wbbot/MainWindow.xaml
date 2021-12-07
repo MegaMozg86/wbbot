@@ -16,6 +16,7 @@
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
@@ -49,6 +50,9 @@
             <xctk:TimePicker Margin="5" Width="150" Value="{Binding EndTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></xctk:TimePicker>
         </StackPanel>
 
-        <Button Grid.Row="6" Margin="5" Width="500" Command="{Binding StopCommand}">Остановить рекламную кампанию</Button>
+        <CheckBox Margin="5" Grid.Row="6" VerticalAlignment="Center"
+                  IsChecked="{Binding IsHeadless, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">Headless</CheckBox>
+
+        <Button Grid.Row="7" Margin="5" Width="500" Command="{Binding StopCommand}">Остановить рекламную кампанию</Button>
     </Grid>
 </Window>
