@@ -148,6 +148,20 @@ namespace wbbot.ViewModel
                 driver.Navigate().GoToUrl(Link);
 
                 System.Threading.Thread.Sleep(30000);
+                // проверка статуса кампании
+                try
+                {
+                    // если элемент Идут показы не найден
+                    IWebElement status9 = driver.FindElement(By.ClassName("status--9"));
+                }
+                catch
+                {
+                    // то жмем кнопку запуска
+                    IWebElement btnRun = driver.FindElement(By.ClassName("begin-container")).FindElement(By.ClassName("btn--primary"));
+                    btnRun.Click();
+                }
+
+
                 // Определяем позицию
                 IWebElement span = driver.FindElement(By.ClassName("card__settings__row__box--place")).FindElement(By.TagName("span"));
                 var positions = span.Text.Split('-');

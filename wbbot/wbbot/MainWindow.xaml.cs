@@ -52,8 +52,15 @@ namespace wbbot
             settings.Link = vm.Link;
             settings.IsHeadless = vm.IsHeadless;
 
-            if(vm.driver != null)
-                vm.driver.Close();
+            try
+            {
+                if (vm.driver != null)
+                    vm.driver.Close();
+            }
+            catch
+            {
+
+            }
 
             try
             {
