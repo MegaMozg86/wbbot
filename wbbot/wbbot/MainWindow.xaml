@@ -42,12 +42,16 @@
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
             <TextBlock Margin="5" Width="250">Начало работы:</TextBlock>
-            <xctk:TimePicker Margin="5" Width="150" Value="{Binding StartTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></xctk:TimePicker>
+            <xctk:DateTimePicker Margin="5" Width="300" Format="FullDateTime"
+                                 Value="{Binding StartTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></xctk:DateTimePicker>
+            <!--<xctk:TimePicker Margin="5" Width="150" Value="{Binding StartTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></xctk:TimePicker>-->
         </StackPanel>
 
         <StackPanel Grid.Row="5" Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
             <TextBlock Margin="5" Width="250">Завершение работы:</TextBlock>
-            <xctk:TimePicker Margin="5" Width="150" Value="{Binding EndTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></xctk:TimePicker>
+            <xctk:DateTimePicker Margin="5" Width="300" Format="FullDateTime"
+                                 Value="{Binding EndTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></xctk:DateTimePicker>
+            <!--<xctk:TimePicker Margin="5" Width="150" Value="{Binding EndTime, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></xctk:TimePicker>-->
         </StackPanel>
 
         <CheckBox Margin="5" Grid.Row="6" VerticalAlignment="Center"

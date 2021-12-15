@@ -27,6 +27,10 @@ namespace wbbot.ViewModel
             StartTime = settings.StartTime;
             EndTime = settings.EndTime;
             IsHeadless = settings.IsHeadless;
+
+            // обнуляем секунды
+            StartTime.AddSeconds(-1 * StartTime.Second);
+            EndTime.AddSeconds(-1 * EndTime.Second);
         }
 
         public IWebDriver driver;
@@ -161,52 +165,65 @@ namespace wbbot.ViewModel
                     btnRun.Click();
                 }
 
-
-                // Определяем позицию
-                IWebElement span = driver.FindElement(By.ClassName("card__settings__row__box--place")).FindElement(By.TagName("span"));
-                var positions = span.Text.Split('-');
-
-                // получаем ставки за три первых места
-                var ms = driver.FindElements(By.ClassName("places__text"));
-                for (int i = 0; i < 3; ++i)
+                try
                 {
-                    var m = ms[i].Text.Split(' ');
-                    places[i] = double.Parse(m[0]);
-                }
+                    // Определяем позицию
+                    IWebElement span = driver.FindElement(By.ClassName("card__settings__row__box--place")).FindElement(By.TagName("span"));
+                    var positions = span.Text.Split('-');
 
-                // поле ввода
-                IWebElement input = driver.FindElement(By.ClassName("form__input--white"));
-
-                // определили повышение ставки
-                current = input.GetAttribute("value");    // получаем текущую ставку
-                _current = double.Parse(current);
-                if (places[0] > _current)
-                    isRaise = true;
-                // -----------------------------
-
-                if (positions[0] != "1")
-                {
-                    // Получаем стоимость первого места
-                    if (places[0] > Limit)
+                    // получаем ставки за три первых места
+                    var ms = driver.FindElements(By.ClassName("places__text"));
+                    for (int i = 0; i < 3; ++i)
                     {
-                        Stop();
-                        return;
+                        var m = ms[i].Text.Split(' ');
+                        places[i] = double.Parse(m[0]);
                     }
 
-                    input.Clear();
-                    //  input.SendKeys(m[0]);
-                    input.SendKeys(((int)places[0]).ToString());
-                    span.Click();// делаем ставку
+                    // поле ввода
+                    IWebElement input = driver.FindElement(By.ClassName("form__input--white"));
 
-                    IWebElement btnSave = driver.FindElement(By.ClassName("begin-container")).FindElement(By.ClassName("btn--outline"));
-                    btnSave.Click();
+                    // определили повышение ставки
+                    current = input.GetAttribute("value");    // получаем текущую ставку
+                    _current = double.Parse(current);
+                    if (places[0] > _current)
+                        isRaise = true;
+                    // -----------------------------
+
+                    if (positions[0].Trim() != "1")
+                    {
+                        // Получаем стоимость первого места
+                        if (places[0] > Limit)
+                        {
+                            Stop();
+                            return;// end current task
+                        }
+
+                        input.Clear();
+                        //  input.SendKeys(m[0]);
+                        input.SendKeys(((int)places[0]).ToString());
+                        span.Click();// делаем ставку
+
+                        IWebElement btnSave = driver.FindElement(By.ClassName("begin-container")).FindElement(By.ClassName("btn--outline"));
+                        btnSave.Click();
+                    }
+                }
+                catch
+                {
+
                 }
 
                 // клик на кнопке статистики
                 // не обязательно перечеслять все уровни иерархии вложений
-                IWebElement link = driver.FindElement(By.ClassName("well"))
-                .FindElement(By.ClassName("preview-link"));
-                link.Click();
+                try
+                {
+                    IWebElement link = driver.FindElement(By.ClassName("well"))
+                    .FindElement(By.ClassName("preview-link"));
+                    link.Click();
+                }
+                catch
+                {
+
+                }
 
                 ParseTable();
             }).Start();            
@@ -214,53 +231,79 @@ namespace wbbot.ViewModel
 
         void ParseTable()
         {
-            string content = string.Empty;
-            var columns = driver.FindElements(By.ClassName("table-nonadaptive--column"));
-            content += DateTime.Now.ToString("dd.MM.yyyy;HH:mm:ss;");
-
-            for(int i = 0; i < 7; ++i)
+            try
             {
-                var text = columns[i].Text.Split('\r');
-                
-                if(i == 6)
+                string content = string.Empty;
+                var columns = driver.FindElements(By.ClassName("table-nonadaptive--column"));
+                content += DateTime.Now.ToString("dd.MM.yyyy;HH:mm:ss;");
+
+                for (int i = 0; i < 7; ++i)
                 {
-                    // избавляемся от знака валюты
-                    content += text[1].Substring(0, text[1].IndexOf(' ')).Replace('\n', ' ').Replace('.', ',').Trim() + ";";
+                    var text = columns[i].Text.Split('\r');
+
+                    if (i == 6)
+                    {
+                        // избавляемся от знака валюты
+                        content += text[1].Substring(0, text[1].IndexOf(' ')).Replace('\n', ' ').Replace('.', ',').Trim() + ";";
+                    }
+                    else
+                        content += text[1].Replace('\n', ' ').Replace('.', ',').Trim() + ";";
                 }
-                else
-                    content += text[1].Replace('\n', ' ').Replace('.', ',').Trim() + ";";
+
+
+                content += string.Format("{0};{1};{2};{3};{4}{5}", isRaise ? "Да" : "Нет", _current, places[0], places[1], places[2], Environment.NewLine);
+                File.AppendAllText(file, content, Encoding.GetEncoding(1251));
+                // прячем таблицу
+                var modal = driver.FindElement(By.ClassName("categories-popup__buttons")).FindElement(By.ClassName("btn--orange"));
+                modal.Click();
+
+            }
+            catch
+            {
+
             }
 
-
-            content += string.Format("{0};{1};{2};{3};{4}{5}", isRaise? "Да" : "Нет", _current, places[0], places[1], places[2], Environment.NewLine);
-            File.AppendAllText(file, content, Encoding.GetEncoding(1251));
+          
         }
 
         void Check()
         {
-            if (StartTime.Hour != EndTime.Hour && StartTime.Minute != EndTime.Minute)
+            if (StartTime != EndTime)
             {
-                if (DateTime.Now.TimeOfDay >= StartTime.TimeOfDay && DateTime.Now.TimeOfDay <= EndTime.TimeOfDay)
+                if (DateTime.Now >= StartTime && DateTime.Now <= EndTime)
                     DoIt();
                 else
-                    return;
+                {
+                    if (DateTime.Now >= EndTime)
+                    {
+                        Stop();
+                        return;
+                    }
+                }
             }
-
-            DoIt();
+            else
+                DoIt();
         }
 
         void Stop()
         {
-            timer.Stop();
+            try
+            {
+                timer.Stop();
 
-            // вставляем сумму в поле ввода
-            IWebElement input = driver.FindElement(By.ClassName("form__input--white"));
-            input.Clear();
-            input.SendKeys("50");
+                // вставляем сумму в поле ввода
+                IWebElement input = driver.FindElement(By.ClassName("form__input--white"));
+                input.Clear();
+                input.SendKeys("50");
 
-            // нажимаем кнопку приостановить компанию
-            IWebElement btnStop = driver.FindElement(By.ClassName("begin-container")).FindElement(By.ClassName("btn--primary"));
-            btnStop.Click();
+                // нажимаем кнопку приостановить компанию
+                IWebElement btnStop = driver.FindElement(By.ClassName("begin-container")).FindElement(By.ClassName("btn--primary"));
+                btnStop.Click();
+            }
+            catch
+            {
+
+            }
         }
 
         private RelayCommand startCommand;
@@ -282,12 +325,18 @@ namespace wbbot.ViewModel
 
                         new Task(() =>
                         {
+                            try
+                            {
+                                System.Threading.Thread.Sleep(10000);
+                                IWebElement query = driver.FindElement(By.ClassName("SimpleInput--vVIag"));
+                                query.SendKeys(PhoneNumber);
+                                IWebElement button = driver.FindElement(By.ClassName("Button--full-width--DVZvW"));
+                                button.Click();
+                            }
+                            catch
+                            {
 
-                            System.Threading.Thread.Sleep(10000);
-                            IWebElement query = driver.FindElement(By.ClassName("SimpleInput--vVIag"));
-                            query.SendKeys(PhoneNumber);
-                            IWebElement button = driver.FindElement(By.ClassName("Button--full-width--DVZvW"));
-                            button.Click();
+                            }
                         }).Start();
                                                 
                         CodeWindow codeWindow = new CodeWindow();
@@ -323,7 +372,8 @@ namespace wbbot.ViewModel
                     (stopCommand = new RelayCommand(obj =>
                     {
                         Stop();
-                        driver.Close();
+                       
+                       // driver.Close();
                     }));
             }
         }

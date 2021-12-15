@@ -46,9 +46,16 @@ namespace wbbot.ViewModel
                 return sendCommand ??
                     (sendCommand = new RelayCommand(obj =>
                     {
-                        IWebElement query = driver.FindElement(By.Name("notifyCode"));
-                        query.SendKeys(Code);
-                        window.Close();
+                        try
+                        {
+                            IWebElement query = driver.FindElement(By.Name("notifyCode"));
+                            query.SendKeys(Code);
+                            window.Close();
+                        }
+                        catch
+                        {
+
+                        }
 
                     }));
             }
